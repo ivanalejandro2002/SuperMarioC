@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1701408828 source:c:\users\ale\documents\documentos alex\alex\escom\quinto semestre\arquitectura\mario\itsame2\main.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<conio.h>
+
