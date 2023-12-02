@@ -5,3 +5,9 @@
 	<windows.h>
 	<conio.h>
 
+1701464682 source:c:\users\ivana\onedrive\documents\5to semestre\arquitectura\mario\supermarioc\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<allegro.h>
+
