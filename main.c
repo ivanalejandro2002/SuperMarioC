@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <allegro.h>
-#define YSCREEN 15
-#define XSCREEN 20
+#define YSCREEN 15      ///Realmentes solo sería 15
+#define XSCREEN 22
 #define ESCALA 8
+#define ESCALAD 16
 #define ESC         27
 #define ARRIBA      72
 #define ABAJO       80
@@ -54,7 +55,7 @@ struct fotos spritesenemigos;
 struct fotos spritesitems;
 
 int xmundo,ymundo;
-int xcamara,ycamara;
+float xcamara,ycamara;
 short **mundo;
 BITMAP *bufferprint;
 BITMAP *background;
@@ -127,30 +128,30 @@ void render(){
     int i,j,zi,zj;
     for(i=0;i<YSCREEN;i++){
         for(j=0;j<XSCREEN;j++){
-            minimundo[i][j]=mundo[ycamara+i][xcamara-XSCREEN+1+j];
+            minimundo[i][j]=mundo[(int)ycamara+i][(int)xcamara-XSCREEN+1+j];
         }
     }
     for(i=0;i<YSCREEN;i++){
         for(j=0;j<XSCREEN;j++){
-            for(int zi=0;zi<2*ESCALA;zi++){
-                for(int zj=0;zj<2*ESCALA;zj++){
-                    buffer[i*2*ESCALA+zi][j*2*ESCALA+zj]=spritesescenario.pixeles[(minimundo[i][j]/16)*2*ESCALA+zi][(minimundo[i][j]%16)*2*ESCALA+zj];
+            for(int zi=0;zi<ESCALAD;zi++){
+                for(int zj=0;zj<ESCALAD;zj++){
+                    buffer[i*ESCALAD+zi][j*ESCALAD+zj]=spritesescenario.pixeles[(minimundo[i][j]/16)*ESCALAD+zi][(minimundo[i][j]%16)*ESCALAD+zj];
                 }
             }
         }
     }
     if(mario.vh>=0^(mario.estado%16==4)){
         for(int i=0;i<4*ESCALA;i++){
-            for(int j=0;j<2*ESCALA;j++){
-                if(spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+j] !=FONDO && spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+j]!=FONDO2)
-                buffer[(int)(mario.y*2*ESCALA)+i-2*ESCALA][(int)(mario.x*2*ESCALA)+j]=spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+j];
+            for(int j=0;j<ESCALAD;j++){
+                if(spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+j] !=FONDO && spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+j]!=FONDO2)
+                buffer[(int)(mario.y*ESCALAD)+i-ESCALAD][(int)(mario.x*ESCALAD)+j+(int)((float)(xcamara-(int)xcamara)*ESCALAD)]=spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+j];
             }
         }
     }else{
         for(int i=0;i<4*ESCALA;i++){
-            for(int j=0;j<2*ESCALA;j++){
-                if(spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+2*ESCALA-j-1] !=FONDO && spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+2*ESCALA-j-1]!=FONDO2)
-                buffer[(int)(mario.y*2*ESCALA)+i-2*ESCALA][(int)(mario.x*2*ESCALA)+j]=spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*2*ESCALA+2*ESCALA-j-1];
+            for(int j=0;j<ESCALAD;j++){
+                if(spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+ESCALAD-j-1] !=FONDO && spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+ESCALAD-j-1]!=FONDO2)
+                buffer[(int)(mario.y*ESCALAD)+i-ESCALAD][(int)(mario.x*ESCALAD)+j+(int)((float)(xcamara-(int)xcamara)*ESCALAD)]=spritesmario.pixeles[mario.estado/16*4*ESCALA+i][(mario.estado%16)*ESCALAD+ESCALAD-j-1];
             }
         }
     }
@@ -158,7 +159,7 @@ void render(){
     for(int i=0;i<YRESOLUTION;i++){
         for(int j=0;j<XRESOLUTION;j++){
             if(buffer[i][j]!=FONDO && buffer[i][j]!=FONDO2)
-            rectfill(bufferprint,j*ESCPIXEL,i*ESCPIXEL,(j+1)*ESCPIXEL-1,(i+1)*ESCPIXEL-1,buffer[i][j]);
+            rectfill(bufferprint,j*ESCPIXEL-(float)(xcamara-(int)xcamara)*ESCALAD*ESCPIXEL,i*ESCPIXEL,(j+1)*ESCPIXEL-1,(i+1)*ESCPIXEL-1,buffer[i][j]);
         }
     }
 
@@ -181,6 +182,7 @@ void juega(){
                 cont++;
             }
         }
+        clear_to_color(bufferprint, FONDO);
         render();
         if(mario.vh!=0 && !oprimidas[SALTO])tiemposalto=0;
         mario.estado-=mario.estado%16;
@@ -213,7 +215,7 @@ void juega(){
                 }
                 if(mario.vh>-MAXVELH)mario.vh-=FACTORMHOR;
             }
-            if(oprimidas[SALTO] && tiemposalto){
+            if(oprimidas[SALTO] && tiemposalto && mario.vy<=0){
                 tiemposalto--;
                 //printf(":0");
                 mario.vy = -AUMENTOVERT;
@@ -233,14 +235,14 @@ void juega(){
         }
 
         if(mario.vh<0){
-            if(minimundo[(int)mario.y][(int)(mario.x+mario.vh)]>0 || minimundo[(int)(mario.y-.9+1)][(int)(mario.x+mario.vh)]>0){
-                mario.x = (int)(mario.x+mario.vh+.9)+.001;
+            if(minimundo[(int)mario.y][(int)((mario.x+xcamara-(int)xcamara)+mario.vh)]>0 || minimundo[(int)(mario.y-.9+1)][(int)((mario.x+xcamara-(int)xcamara)+mario.vh)]>0){
+                mario.x = (int)(mario.x+(xcamara-(int)xcamara)+mario.vh+.9)+.001-(xcamara-(int)xcamara);
                 mario.vh=0;
             }
         }
         if(mario.vh>0){
-            if(minimundo[(int)mario.y][(int)(mario.x+mario.vh+1)]>0 || minimundo[(int)(mario.y-.9+1)][(int)(mario.x+mario.vh+1)]>0){
-                mario.x = (int)(mario.x+mario.vh)-.001;
+            if(minimundo[(int)mario.y][(int)((mario.x+xcamara-(int)xcamara)+mario.vh+1)]>0 || minimundo[(int)(mario.y-.9+1)][(int)((mario.x+xcamara-(int)xcamara)+mario.vh+1)]>0){
+                mario.x = (int)(mario.x+(xcamara-(int)xcamara)+mario.vh)-.001-(xcamara-(int)xcamara);
                 mario.vh=0;
             }
         }
@@ -261,17 +263,22 @@ void juega(){
 
 
         if(mario.vy<0)
-        if(minimundo[(int)(mario.y+mario.vy-.1)][(int)mario.x]>0 || minimundo[(int)(mario.y+mario.vy-.1)][(int)(mario.x+.9)]>0){
+        if(minimundo[(int)(mario.y+mario.vy-.1)][(int)(mario.x+xcamara-(int)xcamara)]>0 || minimundo[(int)(mario.y+mario.vy-.1)][(int)((mario.x+xcamara-(int)xcamara)+.9)]>0){
             mario.y = (int)(mario.y+mario.vy+.9);
             mario.vy=0;
         }
         if(mario.vy>0)
-        if(minimundo[(int)(mario.y+1+mario.vy)][(int)mario.x]>0 || minimundo[(int)(mario.y+1+mario.vy)][(int)(mario.x+.9)]>0){
+        if(minimundo[(int)(mario.y+1+mario.vy)][(int)(mario.x+xcamara-(int)xcamara)]>0 || minimundo[(int)(mario.y+1+mario.vy)][(int)((mario.x+xcamara-(int)xcamara)+.9)]>0){
             mario.y = (int)(mario.y+.9);
             mario.vy=0;
         }
         mario.y+=mario.vy;
 
+
+        if(mario.x>16){
+            xcamara+=mario.x-16;
+            mario.x = 16;
+        }
 
         //gotoxy(0,YSCREEN+1);
         /*printf("                     ");
