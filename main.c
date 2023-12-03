@@ -14,11 +14,11 @@
 #define SALTOMIN    122
 #define CORROMAY    61
 #define CORROMIN    121
-#define FACTORMHOR  0.002
-#define MAXVELH     0.08
+#define FACTORMHOR  0.003
+#define MAXVELH     0.1
 #define FAUTOM      0.025
 #define ESPERA      5000000
-#define RETFRAMES   40
+#define RETFRAMES   15
 #define ACCY        0.015
 #define AUMENTOVERT 0.2
 #define MAXVELV     0.2
@@ -182,6 +182,7 @@ void juega(){
             }
         }
         render();
+        if(mario.vh!=0 && !oprimidas[SALTO])tiemposalto=0;
         mario.estado-=mario.estado%16;
         if(cont!=0){
             if(oprimidas[TECLA_ESC])return;
@@ -189,34 +190,26 @@ void juega(){
                 if(mario.vh<0)mario.estado=mario.estado-mario.estado%16+4;
                 else{
                     mario.estado=mario.estado-mario.estado%16+1;
-                    if(anterior==mario.estado){
-                        if(!faltanframes){
-                            faltanframes=RETFRAMES;
-                            mariociclo++;
-                            if(mariociclo==4)mariociclo=0;
-                            if(mariociclo==3)mariociclo=1;
-                        }else faltanframes--;
-                    }else{
-                        mariociclo=0;
-                    }
+                    if(!faltanframes){
+                        faltanframes=RETFRAMES;
+                        mariociclo++;
+                        if(mariociclo==4)mariociclo=0;
+                    }else faltanframes--;
                     mario.estado+=mariociclo;
+                    if(mariociclo==3)mario.estado-=2;
                 }
                 if(mario.vh<MAXVELH)mario.vh+=FACTORMHOR;
             }else if(oprimidas[TECLA_IZQUIERDA]){
                 if(mario.vh>0)mario.estado =mario.estado-mario.estado%16+4;
                 else{
                     mario.estado=mario.estado-mario.estado%16+1;
-                    if(anterior==mario.estado){
-                        if(!faltanframes){
-                            faltanframes=RETFRAMES;
-                            mariociclo++;
-                            if(mariociclo==4)mariociclo=0;
-                            if(mariociclo==3)mariociclo=1;
-                        }else faltanframes--;
-                    }else{
-                        mariociclo=0;
-                    }
+                    if(!faltanframes){
+                        faltanframes=RETFRAMES;
+                        mariociclo++;
+                        if(mariociclo==4)mariociclo=0;
+                    }else faltanframes--;
                     mario.estado+=mariociclo;
+                    if(mariociclo==3)mario.estado-=2;
                 }
                 if(mario.vh>-MAXVELH)mario.vh-=FACTORMHOR;
             }
@@ -239,9 +232,28 @@ void juega(){
             //}
         }
 
+        if(mario.vh<0){
+            if(minimundo[(int)mario.y][(int)(mario.x+mario.vh)]>0 || minimundo[(int)(mario.y-.9+1)][(int)(mario.x+mario.vh)]>0){
+                mario.x = (int)(mario.x+mario.vh+.9)+.001;
+                mario.vh=0;
+            }
+        }
+        if(mario.vh>0){
+            if(minimundo[(int)mario.y][(int)(mario.x+mario.vh+1)]>0 || minimundo[(int)(mario.y-.9+1)][(int)(mario.x+mario.vh+1)]>0){
+                mario.x = (int)(mario.x+mario.vh)-.001;
+                mario.vh=0;
+            }
+        }
 
-        anterior = mario.estado;
 
+
+
+        mario.x+=mario.vh;
+
+        if(mario.x+mario.vh<0){
+            mario.x=0;
+            mario.vh=0;
+        }
 
         if(mario.vy !=0)mario.estado=mario.estado-mario.estado%16+5;
         else tiemposalto=FRAMESSALTO;
@@ -260,19 +272,7 @@ void juega(){
         }
         mario.y+=mario.vy;
 
-        if(mario.x+mario.vh<=0){
-            mario.vh=0;
-            mario.x = 0;
-        }
-        if(minimundo[(int)mario.y][(int)(mario.x+mario.vh)]>0){
-            if(mario.vh<0)mario.x = (int)mario.x;
-            else mario.x=(int)(mario.x+1);
-            mario.vh=0;
-        }
 
-
-
-        mario.x+=mario.vh;
         //gotoxy(0,YSCREEN+1);
         /*printf("                     ");
         printf("%f",mario.vh);
